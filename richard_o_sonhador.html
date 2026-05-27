@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Richard, o Sonhador</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #c9a84c; --gold-light: #e8c97a; --gold-dark: #8b6914;
+  --parchment: #ffffff; --bg: #1a1f28;
+  --coin: #e8b84b; --coin-dark: #7a5a10;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); font-family:'Crimson Text',serif; color:var(--parchment); min-height:100vh; background-image:radial-gradient(ellipse at 20% 20%,rgba(201,168,76,.05) 0%,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(201,168,76,.05) 0%,transparent 50%); }
+.container { max-width:900px; margin:0 auto; padding:20px; }
+
+.header { text-align:center; padding:28px 20px 18px; border-bottom:1px solid rgba(201,168,76,.2); margin-bottom:20px; position:relative; }
+.header::before,.header::after { content:'✦'; position:absolute; top:50%; transform:translateY(-50%); color:var(--gold); font-size:18px; opacity:.4; }
+.header::before { left:20px; } .header::after { right:20px; }
+.char-name { font-family:'Cinzel',serif; font-size:26px; font-weight:700; color:var(--gold-light); letter-spacing:3px; text-shadow:0 0 20px rgba(201,168,76,.3); }
+.char-title { font-size:13px; color:rgba(201,168,76,.6); letter-spacing:2px; font-style:italic; margin-top:4px; }
+
+.level-section { background:rgba(201,168,76,.06); border:1px solid rgba(201,168,76,.2); border-radius:8px; padding:14px 18px; margin-bottom:16px; }
+.level-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.level-name { font-family:'Cinzel',serif; font-size:17px; color:var(--gold-light); }
+.level-pts { font-size:13px; color:rgba(201,168,76,.7); }
+.xp-bar-bg { height:7px; background:rgba(201,168,76,.12); border-radius:4px; border:1px solid rgba(201,168,76,.2); overflow:hidden; }
+.xp-bar-fill { height:100%; background:linear-gradient(90deg,var(--gold-dark),var(--gold-light)); border-radius:4px; transition:width .6s ease; }
+.next-level { font-size:11px; color:rgba(201,168,76,.45); margin-top:5px; text-align:right; }
+
+.stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px; }
+.stat-card { background:rgba(201,168,76,.05); border:1px solid rgba(201,168,76,.15); border-radius:8px; padding:10px; text-align:center; }
+.stat-label { font-size:10px; color:rgba(201,168,76,.45); letter-spacing:1px; text-transform:uppercase; font-family:'Cinzel',serif; margin-bottom:3px; }
+.stat-value { font-size:20px; font-weight:600; color:var(--gold-light); font-family:'Cinzel',serif; }
+.stat-coin { color:var(--coin); }
+
+.tabs { display:flex; gap:2px; margin-bottom:18px; border-bottom:2px solid #d4af37; background:rgba(0,0,0,.4); border-radius:6px; padding:4px; }
+.tab { font-family:'Cinzel',serif; font-size:14px; padding:10px 20px; background:none; border:none; color:#f0d050; cursor:pointer; border-bottom:3px solid transparent; margin-bottom:0; transition:all .2s ease; letter-spacing:1.5px; font-weight:600; text-shadow:0 2px 8px rgba(212,175,55,.4); }
+.tab:hover { color:#ffd700; text-shadow:0 0 15px rgba(212,175,55,.6); transform:scale(1.05); }
+.tab.active { color:#ffd700; background:rgba(212,175,55,.15); border-radius:4px; border-bottom:3px solid #d4af37; text-shadow:0 0 20px rgba(212,175,55,.8); }
+
+.panel { display:none; } .panel.active { display:block; }
+
+/* MISSIONS */
+.date-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.date-nav button { background:none; border:1px solid rgba(201,168,76,.3); color:var(--gold); padding:5px 12px; border-radius:4px; cursor:pointer; font-size:16px; transition:all .2s; }
+.date-nav button:hover { background:rgba(201,168,76,.1); }
+.date-display { font-family:'Cinzel',serif; font-size:13px; color:var(--gold-light); letter-spacing:1px; }
+.today-pts { background:rgba(201,168,76,.07); border:1px solid rgba(201,168,76,.2); border-radius:8px; padding:12px 14px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; }
+.today-pts-label { font-size:13px; color:rgba(201,168,76,.55); font-family:'Cinzel',serif; }
+.today-pts-values { display:flex; gap:16px; align-items:center; }
+.today-pts-value { font-family:'Cinzel',serif; font-size:20px; color:var(--gold-light); }
+.today-coin-value { font-family:'Cinzel',serif; font-size:16px; color:var(--coin); }
+
+.priority-section { margin-bottom:18px; }
+.priority-header { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:7px 12px; border-radius:6px 6px 0 0; border:1px solid; border-bottom:none; font-family:'Cinzel',serif; font-size:12px; letter-spacing:1px; }
+.priority-coin-badge { font-size:11px; opacity:.7; }
+.priority-1 .priority-header { background:rgba(120,20,20,.25); border-color:rgba(160,40,40,.4); color:#cc7070; }
+.priority-2 .priority-header { background:rgba(100,80,10,.2); border-color:rgba(140,110,20,.35); color:#b89a40; }
+.priority-3 .priority-header { background:rgba(15,70,35,.2); border-color:rgba(25,100,50,.35); color:#55a070; }
+.priority-special .priority-header { background:rgba(50,30,90,.2); border-color:rgba(80,50,130,.35); color:#8860c0; }
+.missions-list { border:1px solid; border-radius:0 0 6px 6px; overflow:hidden; }
+.priority-1 .missions-list { border-color:rgba(160,40,40,.25); }
+.priority-2 .missions-list { border-color:rgba(140,110,20,.25); }
+.priority-3 .missions-list { border-color:rgba(25,100,50,.25); }
+.priority-special .missions-list { border-color:rgba(80,50,130,.25); }
+.mission-item { display:flex; align-items:center; gap:10px; padding:11px 13px; border-bottom:1px solid rgba(255,255,255,.04); transition:background .2s; cursor:pointer; }
+.mission-item:last-child { border-bottom:none; }
+.mission-item:hover { background:rgba(255,255,255,.025); }
+.mission-item.completed { opacity:.5; }
+.mission-check { width:22px; height:22px; border-radius:50%; border:1.5px solid; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:12px; transition:all .2s; cursor:pointer; }
+.priority-1 .mission-check { border-color:rgba(160,40,40,.5); }
+.priority-2 .mission-check { border-color:rgba(140,110,20,.5); }
+.priority-3 .mission-check { border-color:rgba(25,100,50,.5); }
+.priority-special .mission-check { border-color:rgba(80,50,130,.5); }
+.mission-item.completed .mission-check { background:rgba(201,168,76,.25); border-color:var(--gold); color:var(--gold-light); }
+.mission-info { flex:1; }
+.mission-name { font-size:15px; color:var(--parchment); font-weight:600; }
+.mission-item.completed .mission-name { text-decoration:line-through; color:rgba(255,255,255,.3); }
+.mission-min { font-size:11px; color:rgba(255,255,255,.35); font-style:italic; margin-top:1px; }
+.mission-rewards { display:flex; flex-direction:column; align-items:flex-end; gap:2px; }
+.mission-pts { font-family:'Cinzel',serif; font-size:12px; color:var(--gold); }
+.mission-coins { font-family:'Cinzel',serif; font-size:12px; color:var(--coin); }
+
+.day-close { background:rgba(201,168,76,.05); border:1px solid rgba(201,168,76,.18); border-radius:8px; padding:14px; margin-top:18px; }
+.day-close h3 { font-family:'Cinzel',serif; font-size:13px; color:var(--gold-light); margin-bottom:12px; letter-spacing:1px; }
+.punish-question { display:flex; align-items:center; justify-content:space-between; padding:9px 0; border-bottom:1px solid rgba(255,255,255,.04); }
+.punish-question:last-of-type { border-bottom:none; }
+.punish-label { font-size:14px; color:rgba(255,255,255,.75); }
+.punish-penalty { font-size:11px; color:#c06060; margin-top:1px; }
+.toggle-btn { display:flex; background:rgba(255,255,255,.04); border-radius:20px; overflow:hidden; border:1px solid rgba(255,255,255,.08); }
+.toggle-btn button { padding:4px 13px; font-size:13px; border:none; background:none; color:rgba(255,255,255,.4); cursor:pointer; font-family:'Crimson Text',serif; transition:all .2s; }
+.toggle-btn button.active-no { background:rgba(120,20,20,.4); color:#c06060; }
+.toggle-btn button.active-yes { background:rgba(20,100,40,.3); color:#55a070; }
+.close-day-btn { width:100%; margin-top:12px; padding:11px; background:rgba(201,168,76,.1); border:1px solid rgba(201,168,76,.25); border-radius:6px; color:var(--gold-light); font-family:'Cinzel',serif; font-size:13px; letter-spacing:1px; cursor:pointer; transition:all .2s; }
+.close-day-btn:hover { background:rgba(201,168,76,.2); }
+
+/* WEEKLY */
+.week-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; margin-bottom:18px; }
+.week-day { text-align:center; padding:9px 3px; border-radius:6px; border:1px solid rgba(201,168,76,.1); background:rgba(201,168,76,.03); }
+.week-day-name { font-size:9px; color:rgba(201,168,76,.35); font-family:'Cinzel',serif; letter-spacing:1px; margin-bottom:3px; }
+.week-day-pts { font-family:'Cinzel',serif; font-size:14px; color:var(--gold); }
+.week-day.today { border-color:rgba(201,168,76,.4); background:rgba(201,168,76,.1); }
+.week-day.goal-met .week-day-pts { color:#55a070; }
+.weekly-progress { background:rgba(201,168,76,.05); border:1px solid rgba(201,168,76,.15); border-radius:8px; padding:14px; margin-bottom:18px; }
+.weekly-progress h3 { font-family:'Cinzel',serif; font-size:13px; color:var(--gold-light); margin-bottom:10px; }
+.weekly-bar-bg { height:9px; background:rgba(201,168,76,.1); border-radius:5px; overflow:hidden; margin-bottom:6px; }
+.weekly-bar-fill { height:100%; background:linear-gradient(90deg,var(--gold-dark),var(--gold-light)); border-radius:5px; transition:width .5s; }
+.weekly-bar-fill.goal-met { background:linear-gradient(90deg,#1a4a2e,#55a070); }
+.weekly-pts-text { font-size:12px; color:rgba(201,168,76,.5); text-align:right; }
+
+/* LOJA DE RECOMPENSAS */
+.shop-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.shop-coins-display { background:rgba(201,168,76,.1); border:1px solid rgba(201,168,76,.3); border-radius:20px; padding:6px 16px; font-family:'Cinzel',serif; font-size:15px; color:var(--coin); }
+.shop-section-title { font-family:'Cinzel',serif; font-size:13px; color:rgba(201,168,76,.45); letter-spacing:2px; margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid rgba(201,168,76,.15); }
+.rewards-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; margin-bottom:24px; }
+.reward-card { background:rgba(201,168,76,.05); border:1px solid rgba(201,168,76,.15); border-radius:8px; padding:14px; display:flex; flex-direction:column; gap:8px; transition:border-color .2s; }
+.reward-card:hover { border-color:rgba(201,168,76,.3); }
+.reward-card.cant-afford { opacity:.4; }
+.reward-emoji { font-size:26px; text-align:center; }
+.reward-name { font-family:'Cinzel',serif; font-size:13px; color:var(--gold-light); text-align:center; }
+.reward-desc { font-size:12px; color:rgba(255,255,255,.45); text-align:center; font-style:italic; min-height:32px; }
+.reward-cost { font-family:'Cinzel',serif; font-size:16px; color:var(--coin); text-align:center; }
+.redeem-btn { padding:7px; background:rgba(201,168,76,.1); border:1px solid rgba(201,168,76,.3); border-radius:5px; color:var(--coin); font-family:'Cinzel',serif; font-size:12px; letter-spacing:1px; cursor:pointer; transition:all .2s; }
+.redeem-btn:hover:not(:disabled) { background:rgba(201,168,76,.25); }
+.redeem-btn:disabled { opacity:.35; cursor:not-allowed; }
+
+.history-title { font-family:'Cinzel',serif; font-size:13px; color:rgba(201,168,76,.45); letter-spacing:2px; margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid rgba(201,168,76,.15); }
+.history-item { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.04); font-size:13px; }
+.history-item:last-child { border-bottom:none; }
+.history-name { color:rgba(255,255,255,.65); }
+.history-date { font-size:11px; color:rgba(255,255,255,.28); }
+.history-cost { color:var(--coin); font-family:'Cinzel',serif; }
+
+.add-reward-section { background:rgba(201,168,76,.04); border:1px dashed rgba(201,168,76,.2); border-radius:8px; padding:16px; margin-bottom:18px; }
+.add-reward-section h4 { font-family:'Cinzel',serif; font-size:12px; color:rgba(201,168,76,.45); letter-spacing:1px; margin-bottom:12px; }
+.add-reward-form { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.add-reward-form input, .add-reward-form textarea { background:rgba(255,255,255,.04); border:1px solid rgba(201,168,76,.2); border-radius:4px; padding:7px 10px; color:var(--parchment); font-family:'Crimson Text',serif; font-size:13px; }
+.add-reward-form input:focus, .add-reward-form textarea:focus { outline:none; border-color:rgba(201,168,76,.5); }
+.add-reward-form textarea { resize:none; height:38px; grid-column:1/-1; }
+.add-reward-form .emoji-input { grid-column:1; }
+.add-reward-form .cost-input { grid-column:2; }
+.add-btn { grid-column:1/-1; padding:8px; background:rgba(201,168,76,.1); border:1px solid rgba(201,168,76,.3); border-radius:5px; color:var(--gold-light); font-family:'Cinzel',serif; font-size:12px; letter-spacing:1px; cursor:pointer; transition:all .2s; }
+.add-btn:hover { background:rgba(201,168,76,.2); }
+
+/* SETTINGS */
+.settings-section { margin-bottom:22px; }
+.settings-section h3 { font-family:'Cinzel',serif; font-size:14px; color:var(--gold-light); margin-bottom:10px; padding-bottom:7px; border-bottom:1px solid rgba(201,168,76,.2); letter-spacing:1px; }
+.mission-edit-item { display:flex; align-items:center; gap:7px; padding:7px 0; border-bottom:1px solid rgba(255,255,255,.04); }
+.mission-edit-item input[type="text"] { flex:1; background:rgba(255,255,255,.04); border:1px solid rgba(201,168,76,.2); border-radius:4px; padding:5px 9px; color:var(--parchment); font-family:'Crimson Text',serif; font-size:13px; }
+.mission-edit-item input[type="text"]:focus { outline:none; border-color:rgba(201,168,76,.5); }
+.mission-edit-item input[type="number"] { width:60px; background:rgba(255,255,255,.04); border:1px solid rgba(201,168,76,.2); border-radius:4px; padding:5px 7px; color:var(--gold-light); font-family:'Cinzel',serif; font-size:12px; text-align:center; }
+.mission-edit-item input[type="number"]:focus { outline:none; border-color:rgba(201,168,76,.5); }
+.edit-label { font-size:10px; color:rgba(201,168,76,.35); width:26px; text-align:center; }
+.btn-remove { background:none; border:1px solid rgba(120,30,30,.4); color:rgba(200,100,100,.6); border-radius:4px; width:26px; height:26px; cursor:pointer; font-size:14px; transition:all .2s; }
+.btn-remove:hover { background:rgba(120,30,30,.2); color:#c06060; }
+.btn-add { margin-top:7px; padding:6px 13px; background:rgba(201,168,76,.06); border:1px dashed rgba(201,168,76,.25); border-radius:4px; color:rgba(201,168,76,.55); font-family:'Cinzel',serif; font-size:11px; cursor:pointer; letter-spacing:1px; transition:all .2s; }
+.btn-add:hover { background:rgba(201,168,76,.15); color:var(--gold-light); }
+.level-edit-item { display:flex; align-items:center; gap:7px; padding:7px 0; border-bottom:1px solid rgba(255,255,255,.04); }
+.level-num { font-family:'Cinzel',serif; font-size:12px; color:rgba(201,168,76,.35); width:22px; text-align:center; }
+.level-edit-item input[type="text"] { flex:1; background:rgba(255,255,255,.04); border:1px solid rgba(201,168,76,.2); border-radius:4px; padding:5px 9px; color:var(--parchment); font-family:'Crimson Text',serif; font-size:13px; }
+.level-edit-item input[type="text"]:focus { outline:none; border-color:rgba(201,168,76,.5); }
+.level-edit-item input[type="number"] { width:85px; background:rgba(255,255,255,.04); border:1px solid rgba(201,168,76,.2); border-radius:4px; padding:5px 7px; color:var(--gold-light); font-family:'Cinzel',serif; font-size:12px; text-align:center; }
+.save-btn { width:100%; padding:11px; background:rgba(201,168,76,.12); border:1px solid rgba(201,168,76,.35); border-radius:6px; color:var(--gold-light); font-family:'Cinzel',serif; font-size:13px; letter-spacing:1px; cursor:pointer; transition:all .2s; margin-top:14px; }
+.save-btn:hover { background:rgba(201,168,76,.22); }
+.weekly-goal-row { display:flex; align-items:center; gap:12px; padding:9px 0; }
+.weekly-goal-row label { font-size:14px; color:rgba(255,255,255,.75); flex:1; }
+.weekly-goal-row input { width:85px; background:rgba(255,255,255,.04); border:1px solid rgba(201,168,76,.2); border-radius:4px; padding:5px 8px; color:var(--gold-light); font-family:'Cinzel',serif; font-size:13px; text-align:center; }
+
+.toast { position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(80px); background:rgba(26,31,40,.97); border:1px solid rgba(201,168,76,.35); color:var(--gold-light); padding:9px 20px; border-radius:20px; font-family:'Cinzel',serif; font-size:12px; letter-spacing:1px; transition:transform .3s ease; z-index:100; white-space:nowrap; }
+.toast.show { transform:translateX(-50%) translateY(0); }
+.toast.coin { border-color:rgba(80,130,160,.5); color:var(--coin); }
+
+select { background:rgba(255,255,255,.04); border:1px solid rgba(201,168,76,.2); border-radius:4px; padding:5px 7px; color:var(--parchment); font-family:'Crimson Text',serif; font-size:12px; cursor:pointer; }
+select option { background:#1a1f28; }
+
+@media(max-width:600px){
+  .stats-row{grid-template-columns:repeat(2,1fr);}
+  .add-reward-form{grid-template-columns:1fr;}
+  .add-reward-form .emoji-input,.add-reward-form .cost-input{grid-column:1;}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="char-name">Richard, o Sonhador</div>
+  <div class="char-title">— Crônicas de um Mago em Ascensão —</div>
+</div>
+
+<div class="level-section">
+  <div class="level-header">
+    <span class="level-name" id="level-name">🌱 Aprendiz</span>
+    <span class="level-pts" id="level-pts-display">0 pts</span>
+  </div>
+  <div class="xp-bar-bg"><div class="xp-bar-fill" id="xp-bar" style="width:0%"></div></div>
+  <div class="next-level" id="next-level-text"></div>
+</div>
+
+<div class="stats-row">
+  <div class="stat-card"><div class="stat-label">Pontos Total</div><div class="stat-value" id="stat-total">0</div></div>
+  <div class="stat-card"><div class="stat-label">Semana</div><div class="stat-value" id="stat-week">0</div></div>
+  <div class="stat-card"><div class="stat-label">Moedas</div><div class="stat-value stat-coin" id="stat-coins">🪙 0</div></div>
+  <div class="stat-card"><div class="stat-label">Sequência</div><div class="stat-value" id="stat-streak">0🔥</div></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('missions')">⚡ MISSÕES</button>
+  <button class="tab" onclick="switchTab('weekly')">📈 SEMANA</button>
+  <button class="tab" onclick="switchTab('shop')">💎 LOJA</button>
+  <button class="tab" onclick="switchTab('settings')">🔮 GRIMÓRIO</button>
+</div>
+
+<!-- MISSÕES -->
+<div class="panel active" id="panel-missions">
+  <div class="date-nav">
+    <button onclick="changeDay(-1)">‹</button>
+    <span class="date-display" id="date-display"></span>
+    <button onclick="changeDay(1)">›</button>
+  </div>
+  <div class="today-pts">
+    <span class="today-pts-label">Hoje</span>
+    <div class="today-pts-values">
+      <span class="today-coin-value" id="today-coin-val">🪙 0</span>
+      <span class="today-pts-value" id="today-pts-val">0 pts</span>
+    </div>
+  </div>
+  <div id="missions-container"></div>
+  <div class="day-close">
+    <h3>⚖ Fechamento do Dia</h3>
+    <div class="punish-question">
+      <div>
+        <div class="punish-label">Jogou mais de 4h hoje?</div>
+        <div class="punish-penalty">−30 pts se sim</div>
+      </div>
+      <div class="toggle-btn">
+        <button id="games-no" class="active-no" onclick="setPunish('games',false)">Não</button>
+        <button id="games-yes" onclick="setPunish('games',true)">Sim</button>
+      </div>
+    </div>
+    <div class="punish-question">
+      <div>
+        <div class="punish-label">Redes/YouTube por +2h?</div>
+        <div class="punish-penalty">−20 pts se sim</div>
+      </div>
+      <div class="toggle-btn">
+        <button id="social-no" class="active-no" onclick="setPunish('social',false)">Não</button>
+        <button id="social-yes" onclick="setPunish('social',true)">Sim</button>
+      </div>
+    </div>
+    <button class="close-day-btn" onclick="closeDay()">✦ Registrar Dia ✦</button>
+  </div>
+</div>
+
+<!-- SEMANA -->
+<div class="panel" id="panel-weekly">
+  <div class="weekly-progress">
+    <h3>Meta Semanal</h3>
+    <div class="weekly-bar-bg"><div class="weekly-bar-fill" id="weekly-bar" style="width:0%"></div></div>
+    <div class="weekly-pts-text" id="weekly-pts-text">0 / 350 pts</div>
+  </div>
+  <div class="week-grid" id="week-grid"></div>
+</div>
+
+<!-- LOJA -->
+<div class="panel" id="panel-shop">
+  <div class="shop-header">
+    <div style="font-family:'Cinzel',serif;font-size:14px;color:var(--gold-light);">✦ Mercado do Sonhador</div>
+    <div class="shop-coins-display">🪙 <span id="shop-coins-val">0</span> moedas</div>
+  </div>
+
+  <div class="add-reward-section">
+    <h4>+ ADICIONAR RECOMPENSA</h4>
+    <div class="add-reward-form">
+      <input class="emoji-input" type="text" id="new-emoji" placeholder="Emoji (ex: 🍕)" maxlength="4">
+      <input class="cost-input" type="number" id="new-cost" placeholder="Custo em moedas" min="1">
+      <input type="text" id="new-name" placeholder="Nome da recompensa" style="grid-column:1/-1">
+      <textarea id="new-desc" placeholder="Descrição (opcional)"></textarea>
+      <button class="add-btn" onclick="addReward()">✦ Adicionar ao Mercado ✦</button>
+    </div>
+  </div>
+
+  <div class="shop-section-title">RECOMPENSAS DISPONÍVEIS</div>
+  <div class="rewards-grid" id="rewards-grid"></div>
+
+  <div class="history-title">HISTÓRICO DE RESGATES</div>
+  <div id="redeem-history"></div>
+</div>
+
+<!-- GRIMÓRIO (SETTINGS) -->
+<div class="panel" id="panel-settings">
+  <div class="settings-section">
+    <h3>Meta Semanal de Pontos</h3>
+    <div class="weekly-goal-row">
+      <label>Pontos para completar a semana</label>
+      <input type="number" id="weekly-goal-input" value="350" min="50" max="9999">
+    </div>
+  </div>
+  <div class="settings-section"><h3>🔴 Prioridade Alta</h3><div id="edit-p1"></div><button class="btn-add" onclick="addMission(1)">+ Adicionar missão</button></div>
+  <div class="settings-section"><h3>🟡 Prioridade Média</h3><div id="edit-p2"></div><button class="btn-add" onclick="addMission(2)">+ Adicionar missão</button></div>
+  <div class="settings-section"><h3>🟢 Prioridade Baixa</h3><div id="edit-p3"></div><button class="btn-add" onclick="addMission(3)">+ Adicionar missão</button></div>
+  <div class="settings-section"><h3>⭐ Especial</h3><div id="edit-ps"></div><button class="btn-add" onclick="addMission('s')">+ Adicionar missão</button></div>
+  <div class="settings-section"><h3>Níveis do Personagem</h3><div id="edit-levels"></div><button class="btn-add" onclick="addLevel()">+ Adicionar nível</button></div>
+  <button class="save-btn" onclick="saveSettings()">✦ Salvar Grimório ✦</button>
+
+  <div class="settings-section" style="margin-top:24px">
+    <h3>💾 Backup dos Dados</h3>
+    <p style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:14px;line-height:1.6">Exporte seus dados para um arquivo <code style="background:rgba(201,168,76,.15);padding:1px 6px;border-radius:3px;font-size:12px">.json</code> e guarde em segurança. Para restaurar em outro navegador ou após limpar o cache, importe o arquivo.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="save-btn" style="flex:1;min-width:140px;background:rgba(40,80,120,.15);border-color:rgba(80,130,180,.35)" onclick="exportData()">⬇ Exportar dados</button>
+      <label style="flex:1;min-width:140px">
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+        <div class="save-btn" style="background:rgba(30,70,40,.15);border-color:rgba(50,120,70,.35);cursor:pointer;text-align:center" onclick="document.getElementById('import-file').click()">⬆ Importar dados</div>
+      </label>
+    </div>
+  </div>
+</div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const COIN_BY_PRIORITY = {1:4, 2:3, 3:2, s:3};
+
+const DEFAULT_DATA = {
+  weeklyGoal: 350,
+  coins: 0,
+  redeemHistory: [],
+  rewards: [
+    {id:'r1', emoji:'🍕', name:'Comida favorita', desc:'Peça ou faça aquela refeição especial', cost:15},
+    {id:'r2', emoji:'🎮', name:'+1h de jogo extra', desc:'Um dia sem punição por hora adicional', cost:10},
+    {id:'r3', emoji:'🎬', name:'Noite de filme', desc:'Escolha o filme, maratone sem culpa', cost:8},
+    {id:'r4', emoji:'🛋️', name:'Dia de descanso total', desc:'Pule uma missão sem perder pontos', cost:20},
+    {id:'r5', emoji:'🛒', name:'Compra no desejos', desc:'Algo pequeno da sua lista de desejos', cost:50},
+  ],
+  missions: {
+    1:[
+      {id:'m1_1',name:'Trabalho',min:'Montar, estudar ou ministrar',pts:40,bonus:10},
+      {id:'m1_2',name:'Casamento',min:'20 min de tempo real',pts:40,bonus:10},
+      {id:'m1_3',name:'Cuidar da casa',min:'Qualquer coisa feita',pts:40,bonus:10},
+      {id:'m1_4',name:'Sono',min:'7h ou mais',pts:40,bonus:10},
+    ],
+    2:[
+      {id:'m2_1',name:'Programação',min:'30 min',pts:30,bonus:8},
+      {id:'m2_2',name:'Inglês',min:'15 min',pts:30,bonus:8},
+    ],
+    3:[
+      {id:'m3_1',name:'Caminhada',min:'20 min',pts:20,bonus:5},
+      {id:'m3_2',name:'Japonês',min:'15 min',pts:20,bonus:5},
+      {id:'m3_3',name:'Jogos / Descanso',min:'Livre (limite 4h)',pts:20,bonus:5},
+      {id:'m3_4',name:'Lives / Hobbies',min:'Livre',pts:20,bonus:5},
+    ],
+    s:[
+      {id:'ms_1',name:'Portfólio',min:'30 min',pts:25,bonus:6},
+    ]
+  },
+  levels:[
+    {name:'Aprendiz',pts:0},{name:'Viajante',pts:500},{name:'Aventureiro',pts:1500},
+    {name:'Guerreiro',pts:3500},{name:'Especialista',pts:6000},{name:'Veterano',pts:9500},
+    {name:'Mestre',pts:14000},{name:'Lendário',pts:18200},
+  ],
+  days:{}
+};
+
+let state = JSON.parse(localStorage.getItem('richard_v2')||'null') || JSON.parse(JSON.stringify(DEFAULT_DATA));
+if (!state.coins) state.coins = 0;
+if (!state.redeemHistory) state.redeemHistory = [];
+if (!state.rewards) state.rewards = JSON.parse(JSON.stringify(DEFAULT_DATA.rewards));
+
+let currentDateStr = todayStr();
+
+function todayStr(){const d=new Date();const y=d.getFullYear();const m=String(d.getMonth()+1).padStart(2,'0');const day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`;}
+function dateLabel(str){const d=new Date(str+'T12:00:00');const days=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];const months=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]}`;}
+function offsetDate(str,n){const d=new Date(str+'T12:00:00');d.setDate(d.getDate()+n);return d.toISOString().split('T')[0];}
+function getDay(str){if(!state.days[str])state.days[str]={completed:{},punish:{games:false,social:false},closed:false,coinsEarned:0};return state.days[str];}
+function save(){localStorage.setItem('richard_v2',JSON.stringify(state));}
+
+function getDayCoins(str){
+  const day=state.days[str];
+  if(!day)return 0;
+  let c=0;
+  [1,2,3,'s'].forEach(p=>{
+    let countDone=0;
+    (state.missions[p]||[]).forEach(m=>{
+      if(day.completed[m.id]){
+        const base=COIN_BY_PRIORITY[p]||2;
+        c+=countDone===0?base:Math.max(1,Math.round(base/4));
+        countDone++;
+      }
+    });
+  });
+  return c;
+}
+function getDayPts(str){
+  const day=state.days[str];
+  if(!day)return 0;
+  let pts=0;
+  [1,2,3,'s'].forEach(p=>{
+    let countDone=0;
+    (state.missions[p]||[]).forEach(m=>{
+      if(day.completed[m.id]){
+        const isExtra=countDone>0;
+        const basePts=isExtra?Math.max(1,Math.round(m.pts/4)):m.pts;
+        const baseBonus=isExtra?Math.max(1,Math.round(m.bonus/4)):m.bonus;
+        pts+=basePts;
+        if(day.completed[m.id]==='excellent')pts+=baseBonus;
+        countDone++;
+      }
+    });
+  });
+  if(day.punish&&day.punish.games)pts-=30;
+  if(day.punish&&day.punish.social)pts-=20;
+  return Math.max(0,pts);
+}
+function getTodayPts(){return getDayPts(currentDateStr);}
+function getTodayCoins(){return getDayCoins(currentDateStr);}
+function getWeekPts(){
+  const today=new Date(todayStr()+'T12:00:00');
+  const dow=today.getDay();
+  const monday=new Date(today);
+  monday.setDate(today.getDate()-(dow===0?6:dow-1));
+  let total=0;
+  for(let i=0;i<7;i++){const d=new Date(monday);d.setDate(monday.getDate()+i);total+=getDayPts(d.toISOString().split('T')[0]);}
+  return total;
+}
+function getTotalPts(){return Object.keys(state.days).reduce((a,d)=>a+getDayPts(d),0);}
+function getStreak(){let s=0,d=todayStr();while(true){const day=state.days[d];if(!day||!day.closed)break;s++;d=offsetDate(d,-1);}return s;}
+function getCurrentLevel(){const total=getTotalPts();let cur=0;state.levels.forEach((l,i)=>{if(total>=l.pts)cur=i;});return cur;}
+
+function updateHeader(){
+  const total=getTotalPts(),lvl=getCurrentLevel(),lvls=state.levels;
+  const icons=['🌱','🗺','⚔','🛡','📜','🏰','👑','✨'];
+  document.getElementById('level-name').textContent=(icons[lvl]||'✨')+' '+lvls[lvl].name;
+  document.getElementById('level-pts-display').textContent=total+' pts acumulados';
+  const isLast=lvl>=lvls.length-1;
+  let pct=100,nextText='✦ Nível máximo atingido ✦';
+  if(!isLast){const cur=lvls[lvl].pts,nxt=lvls[lvl+1].pts;pct=Math.min(100,Math.round((total-cur)/(nxt-cur)*100));nextText=`Próximo: ${lvls[lvl+1].name} — faltam ${nxt-total} pts`;}
+  document.getElementById('xp-bar').style.width=pct+'%';
+  document.getElementById('next-level-text').textContent=nextText;
+  document.getElementById('stat-total').textContent=total;
+  document.getElementById('stat-week').textContent=getWeekPts();
+  document.getElementById('stat-coins').textContent='🪙 '+state.coins;
+  document.getElementById('stat-streak').textContent=getStreak()+'🔥';
+}
+
+function renderMissions(){
+  document.getElementById('date-display').textContent=dateLabel(currentDateStr);
+  const day=getDay(currentDateStr);
+  const container=document.getElementById('missions-container');
+  container.innerHTML='';
+  const priorities=[
+    {key:1,label:'🔴 Prioridade Alta',cls:'priority-1',coins:4},
+    {key:2,label:'🟡 Prioridade Média',cls:'priority-2',coins:3},
+    {key:3,label:'🟢 Prioridade Baixa',cls:'priority-3',coins:2},
+    {key:'s',label:'⭐ Missão Especial',cls:'priority-special',coins:3},
+  ];
+  priorities.forEach(p=>{
+    const missions=state.missions[p.key]||[];
+    if(!missions.length)return;
+    const sec=document.createElement('div');
+    sec.className='priority-section '+p.cls;
+    const hdr=document.createElement('div');
+    hdr.className='priority-header';
+    hdr.innerHTML=`<span>${p.label}</span><span class="priority-coin-badge">🪙 ${p.coins} por missão</span>`;
+    sec.appendChild(hdr);
+    const list=document.createElement('div');
+    list.className='missions-list';
+    let countDone=0;
+    missions.forEach(m=>{
+      const done=day.completed[m.id];
+      const isExtra=countDone>0;
+      const effectivePts=isExtra?Math.max(1,Math.round(m.pts/4)):m.pts;
+      const effectiveBonus=isExtra?Math.max(1,Math.round(m.bonus/4)):m.bonus;
+      const effectiveCoins=isExtra?Math.max(1,Math.round(p.coins/4)):p.coins;
+      const ptsShow=done==='excellent'?effectivePts+effectiveBonus:effectivePts;
+      const item=document.createElement('div');
+      item.className='mission-item'+(done?' completed':'');
+      item.innerHTML=`
+        <div class="mission-check" onclick="cycleMission('${m.id}','${p.key}')">${done==='excellent'?'★':done?'✓':''}</div>
+        <div class="mission-info">
+          <div class="mission-name">${m.name}${isExtra?' <span style="font-size:10px;opacity:.4;font-style:italic">(bônus ¼)</span>':''}</div>
+          <div class="mission-min">${m.min}</div>
+        </div>
+        <div class="mission-rewards">
+          <span class="mission-pts">${ptsShow} pts${done==='excellent'?' ★':''}</span>
+          <span class="mission-coins">🪙 ${effectiveCoins}</span>
+        </div>`;
+      if(done)countDone++;
+      list.appendChild(item);
+    });
+    sec.appendChild(list);
+    container.appendChild(sec);
+  });
+  const pg=day.punish.games,ps=day.punish.social;
+  document.getElementById('games-no').className=pg?'':'active-no';
+  document.getElementById('games-yes').className=pg?'active-yes':'';
+  document.getElementById('social-no').className=ps?'':'active-no';
+  document.getElementById('social-yes').className=ps?'active-yes':'';
+  document.getElementById('today-pts-val').textContent=getTodayPts()+' pts';
+  document.getElementById('today-coin-val').textContent='🪙 '+getTodayCoins();
+}
+
+function cycleMission(id,priority){
+  const day=getDay(currentDateStr);
+  const cur=day.completed[id];
+  const wasCompleted=!!cur;
+  if(!cur)day.completed[id]='done';
+  else if(cur==='done')day.completed[id]='excellent';
+  else delete day.completed[id];
+  save();
+  renderMissions();
+  updateHeader();
+  renderWeekly();
+}
+
+function setPunish(type,val){const day=getDay(currentDateStr);day.punish[type]=val;save();renderMissions();updateHeader();renderWeekly();}
+
+function closeDay(){
+  const day=getDay(currentDateStr);
+  const coins=getTodayCoins();
+  if(!day.closed){
+    state.coins+=coins;
+    day.coinsEarned=coins;
+  }
+  day.closed=true;
+  save();
+  updateHeader();
+  renderShop();
+  showToast(`Dia registrado! +${getTodayPts()} pts  🪙 +${coins}`);
+}
+
+function changeDay(n){currentDateStr=offsetDate(currentDateStr,n);renderMissions();}
+
+function renderWeekly(){
+  const today=new Date(todayStr()+'T12:00:00');
+  const dow=today.getDay();
+  const monday=new Date(today);
+  monday.setDate(today.getDate()-(dow===0?6:dow-1));
+  const dayNames=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+  const grid=document.getElementById('week-grid');
+  grid.innerHTML='';
+  let weekTotal=0;
+  for(let i=0;i<7;i++){
+    const d=new Date(monday);d.setDate(monday.getDate()+i);
+    const ds=d.toISOString().split('T')[0];
+    const pts=getDayPts(ds);weekTotal+=pts;
+    const isToday=ds===todayStr();
+    const div=document.createElement('div');
+    div.className='week-day'+(isToday?' today':'')+(pts>=90?' goal-met':'');
+    div.innerHTML=`<div class="week-day-name">${dayNames[i]}</div><div class="week-day-pts">${pts}</div>`;
+    grid.appendChild(div);
+  }
+  const goal=state.weeklyGoal||350;
+  const pct=Math.min(100,Math.round(weekTotal/goal*100));
+  document.getElementById('weekly-bar').style.width=pct+'%';
+  document.getElementById('weekly-bar').className='weekly-bar-fill'+(weekTotal>=goal?' goal-met':'');
+  document.getElementById('weekly-pts-text').textContent=weekTotal+' / '+goal+' pts';
+}
+
+function renderShop(){
+  document.getElementById('shop-coins-val').textContent=state.coins;
+  const grid=document.getElementById('rewards-grid');
+  grid.innerHTML='';
+  (state.rewards||[]).forEach((r,idx)=>{
+    const canAfford=state.coins>=r.cost;
+    const card=document.createElement('div');
+    card.className='reward-card'+(canAfford?'':' cant-afford');
+    card.innerHTML=`
+      <div class="reward-emoji">${r.emoji||'🎁'}</div>
+      <div class="reward-name">${r.name}</div>
+      <div class="reward-desc">${r.desc||''}</div>
+      <div class="reward-cost">🪙 ${r.cost}</div>
+      <div style="display:flex;gap:6px">
+        <button class="redeem-btn" style="flex:1" onclick="redeemReward(${idx})" ${canAfford?'':'disabled'}>Resgatar</button>
+        <button class="redeem-btn" style="width:32px;padding:7px 0;border-color:rgba(139,26,26,.4);color:#e08080" onclick="removeReward(${idx})">×</button>
+      </div>`;
+    grid.appendChild(card);
+  });
+
+  const hist=document.getElementById('redeem-history');
+  hist.innerHTML='';
+  if(!state.redeemHistory||!state.redeemHistory.length){
+    hist.innerHTML='<div style="font-size:13px;color:rgba(255,255,255,.3);font-style:italic;padding:10px 0">Nenhum resgate ainda — acumule moedas e recompense-se!</div>';
+    return;
+  }
+  [...state.redeemHistory].reverse().slice(0,10).forEach(h=>{
+    const div=document.createElement('div');
+    div.className='history-item';
+    div.innerHTML=`<div><div class="history-name">${h.emoji||'🎁'} ${h.name}</div><div class="history-date">${h.date}</div></div><div class="history-cost">−🪙 ${h.cost}</div>`;
+    hist.appendChild(div);
+  });
+}
+
+function redeemReward(idx){
+  const r=state.rewards[idx];
+  if(state.coins<r.cost){showToast('Moedas insuficientes!');return;}
+  state.coins-=r.cost;
+  state.redeemHistory.push({...r,date:dateLabel(todayStr())});
+  save();
+  renderShop();
+  updateHeader();
+  showToast(`✦ ${r.name} resgatado! −🪙 ${r.cost}`,'coin');
+}
+
+function removeReward(idx){
+  state.rewards.splice(idx,1);
+  save();
+  renderShop();
+}
+
+function addReward(){
+  const emoji=document.getElementById('new-emoji').value.trim()||'🎁';
+  const name=document.getElementById('new-name').value.trim();
+  const desc=document.getElementById('new-desc').value.trim();
+  const cost=parseInt(document.getElementById('new-cost').value)||10;
+  if(!name){showToast('Dê um nome à recompensa!');return;}
+  const id='r'+Date.now();
+  state.rewards.push({id,emoji,name,desc,cost});
+  save();
+  document.getElementById('new-emoji').value='';
+  document.getElementById('new-name').value='';
+  document.getElementById('new-desc').value='';
+  document.getElementById('new-cost').value='';
+  renderShop();
+  showToast('Recompensa adicionada ao mercado!');
+}
+
+function renderSettings(){
+  [1,2,3,'s'].forEach(p=>{
+    const c=document.getElementById('edit-p'+p);
+    c.innerHTML='';
+    const pKey=typeof p==='string'?`'${p}'`:p;
+    (state.missions[p]||[]).forEach((m,idx)=>{
+      const row=document.createElement('div');
+      row.className='mission-edit-item';
+      row.innerHTML=`
+        <input type="text" value="${m.name}" placeholder="Nome" onchange="state.missions[${pKey}][${idx}].name=this.value">
+        <input type="text" value="${m.min}" placeholder="Mínimo" style="width:130px" onchange="state.missions[${pKey}][${idx}].min=this.value">
+        <span class="edit-label">pts</span>
+        <input type="number" value="${m.pts}" min="1" max="999" onchange="state.missions[${pKey}][${idx}].pts=parseInt(this.value)||${m.pts}">
+        <button class="btn-remove" onclick="removeMission(${pKey},${idx})">×</button>`;
+      c.appendChild(row);
+    });
+  });
+  const lc=document.getElementById('edit-levels');
+  lc.innerHTML='';
+  state.levels.forEach((l,i)=>{
+    const row=document.createElement('div');
+    row.className='level-edit-item';
+    row.innerHTML=`
+      <span class="level-num">${i+1}</span>
+      <input type="text" value="${l.name}" placeholder="Nome" onchange="state.levels[${i}].name=this.value">
+      <input type="number" value="${l.pts}" min="0" placeholder="Pts" onchange="state.levels[${i}].pts=parseInt(this.value)||0">
+      ${i>0?`<button class="btn-remove" onclick="removeLevel(${i})">×</button>`:'<span style="width:26px"></span>'}`;
+    lc.appendChild(row);
+  });
+  document.getElementById('weekly-goal-input').value=state.weeklyGoal||350;
+}
+
+function addMission(p){const id='m'+p+'_'+Date.now();state.missions[p].push({id,name:'Nova missão',min:'Mínimo',pts:p===1?40:p===2?30:p==='s'?25:20,bonus:p===1?10:p===2?8:p==='s'?6:5});renderSettings();}
+function removeMission(p,idx){state.missions[p].splice(idx,1);renderSettings();}
+function addLevel(){const last=state.levels[state.levels.length-1];state.levels.push({name:'Novo Nível',pts:last.pts+2000});renderSettings();}
+function removeLevel(i){state.levels.splice(i,1);renderSettings();}
+function exportData(){
+  const json=JSON.stringify(state,null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const date=todayStr();
+  a.href=url;
+  a.download=`richard_sonhador_${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Dados exportados com sucesso!');
+}
+
+function importData(event){
+  const file=event.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const imported=JSON.parse(e.target.result);
+      if(!imported.missions||!imported.levels){showToast('Arquivo inválido!');return;}
+      state=imported;
+      save();
+      updateHeader();
+      renderMissions();
+      renderWeekly();
+      renderSettings();
+      renderShop();
+      showToast('Dados importados! Bem-vindo de volta.');
+    }catch(err){
+      showToast('Erro ao importar o arquivo.');
+    }
+    event.target.value='';
+  };
+  reader.readAsText(file);
+}
+
+function saveSettings(){state.weeklyGoal=parseInt(document.getElementById('weekly-goal-input').value)||350;save();updateHeader();renderWeekly();renderMissions();showToast('Grimório atualizado!');}
+
+function switchTab(tab){
+  const tabs=['missions','weekly','shop','settings'];
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',tabs[i]===tab));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+  if(tab==='weekly')renderWeekly();
+  if(tab==='settings')renderSettings();
+  if(tab==='shop')renderShop();
+}
+
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast show'+(type?' '+type:'');
+  setTimeout(()=>t.className='toast',2600);
+}
+
+updateHeader();
+renderMissions();
+renderWeekly();
+</script>
+</body>
+</html>
