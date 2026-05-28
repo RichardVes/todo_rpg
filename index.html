@@ -114,7 +114,13 @@ body { background:var(--bg); font-family:'Crimson Text',serif; color:var(--parch
 .shop-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
 .shop-coins-display { background:rgba(201,168,76,.1); border:1px solid rgba(201,168,76,.3); border-radius:20px; padding:6px 16px; font-family:'Cinzel',serif; font-size:15px; color:var(--coin); }
 .shop-section-title { font-family:'Cinzel',serif; font-size:13px; color:rgba(201,168,76,.45); letter-spacing:2px; margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid rgba(201,168,76,.15); }
-.rewards-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; margin-bottom:24px; }
+.rewards-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:10px; margin-bottom:20px; }
+.shop-category { margin-bottom:24px; }
+.shop-category-title { font-family:'Cinzel',serif; font-size:12px; letter-spacing:2px; margin-bottom:10px; padding:6px 12px; border-radius:4px; display:flex; align-items:center; gap:8px; }
+.cat-small { background:rgba(26,92,46,.15); border-left:3px solid #55a070; color:#55a070; }
+.cat-medium { background:rgba(100,80,10,.15); border-left:3px solid #b89a40; color:#b89a40; }
+.cat-large { background:rgba(80,40,10,.15); border-left:3px solid #c07030; color:#c07030; }
+.cat-legendary { background:rgba(74,26,110,.15); border-left:3px solid #9060d0; color:#9060d0; }
 .reward-card { background:rgba(201,168,76,.05); border:1px solid rgba(201,168,76,.15); border-radius:8px; padding:14px; display:flex; flex-direction:column; gap:8px; transition:border-color .2s; }
 .reward-card:hover { border-color:rgba(201,168,76,.3); }
 .reward-card.cant-afford { opacity:.4; }
@@ -282,8 +288,7 @@ select option { background:#1a1f28; }
     </div>
   </div>
 
-  <div class="shop-section-title">RECOMPENSAS DISPONÍVEIS</div>
-  <div class="rewards-grid" id="rewards-grid"></div>
+  <div id="rewards-container"></div>
 
   <div class="history-title">HISTÓRICO DE RESGATES</div>
   <div id="redeem-history"></div>
@@ -322,18 +327,33 @@ select option { background:#1a1f28; }
 <div class="toast" id="toast"></div>
 
 <script>
-const COIN_BY_PRIORITY = {1:4, 2:3, 3:2, s:3};
+const COIN_BY_PRIORITY = {1:3, 2:2, 3:1, s:2};
 
 const DEFAULT_DATA = {
   weeklyGoal: 350,
   coins: 0,
   redeemHistory: [],
   rewards: [
-    {id:'r1', emoji:'🍕', name:'Comida favorita', desc:'Peça ou faça aquela refeição especial', cost:15},
-    {id:'r2', emoji:'🎮', name:'+1h de jogo extra', desc:'Um dia sem punição por hora adicional', cost:10},
-    {id:'r3', emoji:'🎬', name:'Noite de filme', desc:'Escolha o filme, maratone sem culpa', cost:8},
-    {id:'r4', emoji:'🛋️', name:'Dia de descanso total', desc:'Pule uma missão sem perder pontos', cost:20},
-    {id:'r5', emoji:'🛒', name:'Compra no desejos', desc:'Algo pequeno da sua lista de desejos', cost:50},
+    {id:'r1', emoji:'☕', name:'Café/Chá especial', desc:'Sua bebida favorita do dia', cost:2},
+    {id:'r2', emoji:'🍫', name:'Chocolate ou doce', desc:'Um doce da sua preferência', cost:3},
+    {id:'r3', emoji:'🎵', name:'Música nova', desc:'1 música ou álbum pra ouvir', cost:4},
+    {id:'r4', emoji:'📺', name:'Episódio extra', desc:'Um episódio sem culpa', cost:5},
+    {id:'r5', emoji:'🍕', name:'Comida rápida favorita', desc:'Pizza, hambúrguer ou similiar', cost:6},
+    {id:'r6', emoji:'🎮', name:'+2h jogo sem punição', desc:'2 horas extras de jogo em 1 dia', cost:10},
+    {id:'r7', emoji:'🍜', name:'Comida que você ama', desc:'Pedir delivery ou fazer especial', cost:12},
+    {id:'r8', emoji:'🎬', name:'Noite de filme', desc:'Maratona + pipoca + sem culpa', cost:12},
+    {id:'r9', emoji:'🛏️', name:'Dormir até tarde', desc:'Acordar mais tarde um dia', cost:8},
+    {id:'r10', emoji:'📚', name:'Comprar livro/jogo indie', desc:'Algo que você quer ler/jogar', cost:15},
+    {id:'r11', emoji:'🎧', name:'Acessório pequeno', desc:'Cabo, mouse pad, sticker, etc', cost:18},
+    {id:'r12', emoji:'🎮', name:'Jogo que quer', desc:'Jogo indie/steam ($10-15)', cost:30},
+    {id:'r13', emoji:'🖥️', name:'Periférico pequeno', desc:'Mouse, teclado, headset', cost:35},
+    {id:'r14', emoji:'🏖️', name:'Passeio/saída especial', desc:'Cinema, restaurante, parque', cost:40},
+    {id:'r15', emoji:'📖', name:'Curso online', desc:'Algo que você quer aprender', cost:40},
+    {id:'r16', emoji:'🎁', name:'Compra de desejos', desc:'Algo que você sempre quis', cost:45},
+    {id:'r17', emoji:'🎮', name:'Jogo AAA novo', desc:'Cyberpunk, Elden Ring, etc', cost:60},
+    {id:'r18', emoji:'⌨️', name:'Setup upgrade', desc:'Monitor, teclado premium, cadeira', cost:80},
+    {id:'r19', emoji:'🏆', name:'Dia totalmente livre', desc:'Pula todas as missões de 1 dia', cost:70},
+    {id:'r20', emoji:'🎓', name:'Conferência/evento', desc:'Ingresso pra evento tech/gaming', cost:90},
   ],
   missions: {
     1:[
@@ -385,7 +405,7 @@ function getDayCoins(str){
     let countDone=0;
     (state.missions[p]||[]).forEach(m=>{
       if(day.completed[m.id]){
-        const base=COIN_BY_PRIORITY[p]||2;
+        const base=m.coins!==undefined?m.coins:(COIN_BY_PRIORITY[p]||1);
         c+=countDone===0?base:Math.max(1,Math.round(base/4));
         countDone++;
       }
@@ -451,10 +471,10 @@ function renderMissions(){
   const container=document.getElementById('missions-container');
   container.innerHTML='';
   const priorities=[
-    {key:1,label:'🔴 Prioridade Alta',cls:'priority-1',coins:4},
-    {key:2,label:'🟡 Prioridade Média',cls:'priority-2',coins:3},
-    {key:3,label:'🟢 Prioridade Baixa',cls:'priority-3',coins:2},
-    {key:'s',label:'⭐ Missão Especial',cls:'priority-special',coins:3},
+    {key:1,label:'🔴 Prioridade Alta',cls:'priority-1',coins:COIN_BY_PRIORITY[1]},
+    {key:2,label:'🟡 Prioridade Média',cls:'priority-2',coins:COIN_BY_PRIORITY[2]},
+    {key:3,label:'🟢 Prioridade Baixa',cls:'priority-3',coins:COIN_BY_PRIORITY[3]},
+    {key:'s',label:'⭐ Missão Especial',cls:'priority-special',coins:COIN_BY_PRIORITY['s']},
   ];
   priorities.forEach(p=>{
     const missions=state.missions[p.key]||[];
@@ -473,7 +493,8 @@ function renderMissions(){
       const isExtra=countDone>0;
       const effectivePts=isExtra?Math.max(1,Math.round(m.pts/4)):m.pts;
       const effectiveBonus=isExtra?Math.max(1,Math.round(m.bonus/4)):m.bonus;
-      const effectiveCoins=isExtra?Math.max(1,Math.round(p.coins/4)):p.coins;
+      const mCoins=m.coins!==undefined?m.coins:p.coins;
+      const effectiveCoins=isExtra?Math.max(1,Math.round(mCoins/4)):mCoins;
       const ptsShow=done==='excellent'?effectivePts+effectiveBonus:effectivePts;
       const item=document.createElement('div');
       item.className='mission-item'+(done?' completed':'');
@@ -561,22 +582,43 @@ function renderWeekly(){
 
 function renderShop(){
   document.getElementById('shop-coins-val').textContent=state.coins;
-  const grid=document.getElementById('rewards-grid');
-  grid.innerHTML='';
-  (state.rewards||[]).forEach((r,idx)=>{
-    const canAfford=state.coins>=r.cost;
-    const card=document.createElement('div');
-    card.className='reward-card'+(canAfford?'':' cant-afford');
-    card.innerHTML=`
-      <div class="reward-emoji">${r.emoji||'🎁'}</div>
-      <div class="reward-name">${r.name}</div>
-      <div class="reward-desc">${r.desc||''}</div>
-      <div class="reward-cost">🪙 ${r.cost}</div>
-      <div style="display:flex;gap:6px">
-        <button class="redeem-btn" style="flex:1" onclick="redeemReward(${idx})" ${canAfford?'':'disabled'}>Resgatar</button>
-        <button class="redeem-btn" style="width:32px;padding:7px 0;border-color:rgba(139,26,26,.4);color:#e08080" onclick="removeReward(${idx})">×</button>
-      </div>`;
-    grid.appendChild(card);
+  const container=document.getElementById('rewards-container');
+  container.innerHTML='';
+  const categories=[
+    {label:'🌿 PEQUENOS PRAZERES', cls:'cat-small', min:0, max:9},
+    {label:'⚔ RECOMPENSAS MODERADAS', cls:'cat-medium', min:10, max:24},
+    {label:'🏰 CONQUISTAS GRANDES', cls:'cat-large', min:25, max:59},
+    {label:'👑 LENDÁRIO', cls:'cat-legendary', min:60, max:99999},
+  ];
+  categories.forEach(cat=>{
+    const items=(state.rewards||[]).filter(r=>r.cost>=cat.min&&r.cost<=cat.max);
+    if(!items.length)return;
+    const sec=document.createElement('div');
+    sec.className='shop-category';
+    const title=document.createElement('div');
+    title.className='shop-category-title '+cat.cls;
+    title.textContent=cat.label;
+    sec.appendChild(title);
+    const grid=document.createElement('div');
+    grid.className='rewards-grid';
+    items.forEach(r=>{
+      const idx=(state.rewards||[]).indexOf(r);
+      const canAfford=state.coins>=r.cost;
+      const card=document.createElement('div');
+      card.className='reward-card'+(canAfford?'':' cant-afford');
+      card.innerHTML=`
+        <div class="reward-emoji">${r.emoji||'🎁'}</div>
+        <div class="reward-name">${r.name}</div>
+        <div class="reward-desc">${r.desc||''}</div>
+        <div class="reward-cost">🪙 ${r.cost}</div>
+        <div style="display:flex;gap:6px">
+          <button class="redeem-btn" style="flex:1" onclick="redeemReward(${idx})" ${canAfford?'':'disabled'}>Resgatar</button>
+          <button class="redeem-btn" style="width:32px;padding:7px 0;border-color:rgba(139,26,26,.4);color:#e08080" onclick="removeReward(${idx})">×</button>
+        </div>`;
+      grid.appendChild(card);
+    });
+    sec.appendChild(grid);
+    container.appendChild(sec);
   });
 
   const hist=document.getElementById('redeem-history');
@@ -635,11 +677,14 @@ function renderSettings(){
     (state.missions[p]||[]).forEach((m,idx)=>{
       const row=document.createElement('div');
       row.className='mission-edit-item';
+      const pCoins=COIN_BY_PRIORITY[p]||1;
       row.innerHTML=`
         <input type="text" value="${m.name}" placeholder="Nome" onchange="state.missions[${pKey}][${idx}].name=this.value">
-        <input type="text" value="${m.min}" placeholder="Mínimo" style="width:130px" onchange="state.missions[${pKey}][${idx}].min=this.value">
-        <span class="edit-label">pts</span>
-        <input type="number" value="${m.pts}" min="1" max="999" onchange="state.missions[${pKey}][${idx}].pts=parseInt(this.value)||${m.pts}">
+        <input type="text" value="${m.min}" placeholder="Mínimo" style="width:100px" onchange="state.missions[${pKey}][${idx}].min=this.value">
+        <span class="edit-label" title="Pontos">pts</span>
+        <input type="number" value="${m.pts}" min="1" max="999" onchange="state.missions[${pKey}][${idx}].pts=parseInt(this.value)||${m.pts}" style="width:52px">
+        <span class="edit-label" title="Moedas">🪙</span>
+        <input type="number" value="${m.coins!==undefined?m.coins:pCoins}" min="0" max="99" onchange="state.missions[${pKey}][${idx}].coins=parseInt(this.value)||0" style="width:44px;color:#e8b84b">
         <button class="btn-remove" onclick="removeMission(${pKey},${idx})">×</button>`;
       c.appendChild(row);
     });
